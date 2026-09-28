@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -14,6 +14,39 @@ POSTS = [
 def get_posts():
     return jsonify(POSTS)
 
+
+@app.route('/api/posts', methods=['POST'])
+def add_post():
+    data = request.get_json()
+
+    if not data or 'title' not in data:
+        return jsonify({"error": "Title is required"}), 400
+
+    if 'content' not in data:
+        return jsonify({"error": "Content is required"}), 400
+
+    new_id = max((post['id'] for post in POSTS), default=0) + 1
+
+    new_post = {
+        "id": new_id,
+        "title": data['title'],
+        "content": data['content']
+    }
+
+    POSTS.append(new_post)
+
+    return jsonify(new_post), 201
+
+@app.route('/api/posts/<int:post_id>', methods=['DELETE'])
+def delete_post(post_id):
+    for post in POSTS:
+        if post['id'] == post_id:
+            POSTS.remove(post)
+            return jsonify({
+                "message": f"Post with id {post_id} has been deleted successfully."
+            }), 200
+
+    return jsonify({"error": "Post not found"}), 404
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5002, debug=True)
