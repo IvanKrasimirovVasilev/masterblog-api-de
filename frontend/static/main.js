@@ -32,7 +32,11 @@ function loadPosts() {
                 postContainer.appendChild(postDiv);
             });
         })
-        .catch(error => console.error('Error:', error));  // If an error occurs, log it to the console
+        .catch(error => {
+            console.error('Error:', error)
+            document.getElementById('backend-status').textContent =
+        '🔴 No connection to backend';
+        });  // If an error occurs, log it to the console
 }
 
 // Function to send a POST request to the API to add a new post

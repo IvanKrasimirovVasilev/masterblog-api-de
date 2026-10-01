@@ -7,6 +7,7 @@ CORS(app)  # This will enable CORS for all routes
 POSTS = [
     {"id": 1, "title": "First post", "content": "This is the first post."},
     {"id": 2, "title": "Second post", "content": "This is the second post."},
+    {"id": 3, "title": "ivan post", "content": "This is the ivan post."},
 ]
 
 
