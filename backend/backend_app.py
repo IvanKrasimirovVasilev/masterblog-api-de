@@ -15,6 +15,22 @@ POSTS = [
 def get_posts():
     return jsonify(POSTS)
 
+@app.route('/api/posts/search', methods=['GET'])
+def search_posts():
+    title = request.args.get('title')
+    content = request.args.get('content')
+
+    results = []
+
+    for post in POSTS:
+        if title and title.lower() in post['title'].lower():
+            results.append(post)
+        elif content and content.lower() in post['content'].lower():
+            results.append(post)
+
+    return jsonify(results), 200
+
+
 
 @app.route('/api/posts', methods=['POST'])
 def add_post():
