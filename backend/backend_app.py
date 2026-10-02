@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
@@ -22,18 +23,42 @@ app.register_blueprint(
 )
 
 POSTS = [
-    {"id": 1, "title": "First post", "content": "This is the first post."},
-    {"id": 2, "title": "Second post", "content": "This is the second post."},
-    {"id": 3, "title": "ivan post", "content": "This is the ivan post."},
+    {
+        "id": 1,
+        "title": "First post",
+        "content": "This is the first post.",
+        "author": "The Mastar",
+        "date": "2026-10-01"
+    },
+    {
+        "id": 2,
+        "title": "Second post",
+        "content": "This is the second post.",
+        "author": "Peter Kane",
+        "date": "2026-09-25"
+    },
+    {
+        "id": 3,
+        "title": "ivan post",
+        "content": "This is the ivan post.",
+        "author": "Ivan Vasilev",
+        "date": "2026-09-30"
+    },
 ]
 
+def is_valid_date(date_string):
+    try:
+        datetime.strptime(date_string, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
 
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
     sort = request.args.get('sort')
     direction = request.args.get('direction')
 
-    if sort and sort not in ['title', 'content']:
+    if sort and sort not in ['title', 'content', 'author', 'date']:
         return jsonify({"error": "Invalid sort field"}), 400
 
     if direction and direction not in ['asc', 'desc']:
@@ -43,24 +68,37 @@ def get_posts():
 
     if sort:
         reverse = direction == 'desc'
-        posts.sort(key=lambda post: post[sort].lower(), reverse=reverse)
+        if sort == 'date':
+            posts.sort(
+                key=lambda post: datetime.strptime(post['date'], '%Y-%m-%d'),
+                reverse=reverse
+            )
+        else:
+            posts.sort(
+                key=lambda post: post[sort].lower(),
+                reverse=reverse
+            )
 
     return jsonify(posts), 200
 @app.route('/api/posts/search', methods=['GET'])
 def search_posts():
-    title = request.args.get('title')
-    content = request.args.get('content')
+    search = request.args.get('search')
+
+    if not search:
+        return jsonify(POSTS), 200
 
     results = []
 
     for post in POSTS:
-        if title and title.lower() in post['title'].lower():
-            results.append(post)
-        elif content and content.lower() in post['content'].lower():
+        if (
+            search.lower() in post['title'].lower()
+            or search.lower() in post['content'].lower()
+            or search.lower() in post['author'].lower()
+            or search.lower() in post['date'].lower()
+        ):
             results.append(post)
 
     return jsonify(results), 200
-
 
 
 @app.route('/api/posts', methods=['POST'])
@@ -73,12 +111,25 @@ def add_post():
     if 'content' not in data:
         return jsonify({"error": "Content is required"}), 400
 
+    if 'author' not in data:
+        return jsonify({"error": "Author is required"}), 400
+
+    if 'date' not in data:
+        return jsonify({"error": "Date is required"}), 400
+
+    if not is_valid_date(data['date']):
+        return jsonify({
+            "error": "Invalid date format. Use YYYY-MM-DD"
+        }), 400
+
     new_id = max((post['id'] for post in POSTS), default=0) + 1
 
     new_post = {
         "id": new_id,
         "title": data['title'],
-        "content": data['content']
+        "content": data['content'],
+        "author": data['author'],
+        "date": data['date']
     }
 
     POSTS.append(new_post)
@@ -100,10 +151,17 @@ def delete_post(post_id):
 def update_post(post_id):
     data = request.get_json()
 
+    if 'date' in data and not is_valid_date(data['date']):
+        return jsonify({
+            "error": "Invalid date format. Use YYYY-MM-DD"
+        }), 400
+
     for post in POSTS:
         if post['id'] == post_id:
             post['title'] = data.get('title', post['title'])
             post['content'] = data.get('content', post['content'])
+            post['author'] = data.get('author', post['author'])
+            post['date'] = data.get('date', post['date'])
             return jsonify(post), 200
 
     return jsonify({"error": "Post not found"}), 404

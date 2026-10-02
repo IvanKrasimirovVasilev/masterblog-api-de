@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "title": "Masterblog API",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "RESTful API for managing blog posts"
   },
   "host": "127.0.0.1:5002",
@@ -33,7 +33,9 @@
             "type": "string",
             "enum": [
               "title",
-              "content"
+              "content",
+              "author",
+              "date"
             ],
             "required": false,
             "description": "Field used to sort the posts"
@@ -79,7 +81,9 @@
               "type": "object",
               "required": [
                 "title",
-                "content"
+                "content",
+                "author",
+                "date"
               ],
               "properties": {
                 "title": {
@@ -87,6 +91,14 @@
                 },
                 "content": {
                   "type": "string"
+                },
+                "author": {
+                  "type": "string"
+                },
+                "date": {
+                  "type": "string",
+                  "format": "date",
+                  "example": "2026-10-02"
                 }
               }
             }
@@ -97,15 +109,15 @@
             "description": "Post created successfully"
           },
           "400": {
-            "description": "Title or content is missing"
+            "description": "Missing field or invalid date format"
           }
         }
       }
     },
-
     "/api/posts/search": {
       "get": {
-        "summary": "Searches posts by title or content",
+        "summary": "Searches posts",
+        "description": "Searches title, content, author and date",
         "produces": [
           "application/json"
         ],
@@ -114,18 +126,11 @@
         ],
         "parameters": [
           {
-            "name": "title",
+            "name": "search",
             "in": "query",
             "type": "string",
             "required": false,
-            "description": "Search term for the post title"
-          },
-          {
-            "name": "content",
-            "in": "query",
-            "type": "string",
-            "required": false,
-            "description": "Search term for the post content"
+            "description": "Search term for title, content, author or date"
           }
         ],
         "responses": {
@@ -135,7 +140,6 @@
         }
       }
     },
-
     "/api/posts/{post_id}": {
       "put": {
         "summary": "Updates an existing post",
@@ -168,6 +172,14 @@
                 },
                 "content": {
                   "type": "string"
+                },
+                "author": {
+                  "type": "string"
+                },
+                "date": {
+                  "type": "string",
+                  "format": "date",
+                  "example": "2026-10-02"
                 }
               }
             }
@@ -177,12 +189,14 @@
           "200": {
             "description": "Post updated successfully"
           },
+          "400": {
+            "description": "Invalid date format"
+          },
           "404": {
             "description": "Post not found"
           }
         }
       },
-
       "delete": {
         "summary": "Deletes a post",
         "produces": [
