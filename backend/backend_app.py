@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
+import json
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
@@ -22,29 +23,19 @@ app.register_blueprint(
     url_prefix=SWAGGER_URL
 )
 
-POSTS = [
-    {
-        "id": 1,
-        "title": "First post",
-        "content": "This is the first post.",
-        "author": "The Mastar",
-        "date": "2026-10-01"
-    },
-    {
-        "id": 2,
-        "title": "Second post",
-        "content": "This is the second post.",
-        "author": "Peter Kane",
-        "date": "2026-09-25"
-    },
-    {
-        "id": 3,
-        "title": "ivan post",
-        "content": "This is the ivan post.",
-        "author": "Ivan Vasilev",
-        "date": "2026-09-30"
-    },
-]
+def load_posts():
+    try:
+        with open("posts.json", "r", encoding="utf-8") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return []
+    except json.JSONDecodeError:
+        return []
+
+def save_posts(posts):
+    with open("posts.json", "w", encoding="utf-8") as file:
+        json.dump(posts, file, indent=4, ensure_ascii=False)
+
 
 def is_valid_date(date_string):
     try:
@@ -64,7 +55,7 @@ def get_posts():
     if direction and direction not in ['asc', 'desc']:
         return jsonify({"error": "Invalid sort direction"}), 400
 
-    posts = POSTS.copy()
+    posts = load_posts()
 
     if sort:
         reverse = direction == 'desc'
@@ -80,16 +71,19 @@ def get_posts():
             )
 
     return jsonify(posts), 200
+
 @app.route('/api/posts/search', methods=['GET'])
 def search_posts():
     search = request.args.get('search')
 
+    posts = load_posts()
+
     if not search:
-        return jsonify(POSTS), 200
+        return jsonify(posts), 200
 
     results = []
 
-    for post in POSTS:
+    for post in posts:
         if (
             search.lower() in post['title'].lower()
             or search.lower() in post['content'].lower()
@@ -99,8 +93,6 @@ def search_posts():
             results.append(post)
 
     return jsonify(results), 200
-
-
 @app.route('/api/posts', methods=['POST'])
 def add_post():
     data = request.get_json()
@@ -122,7 +114,10 @@ def add_post():
             "error": "Invalid date format. Use YYYY-MM-DD"
         }), 400
 
-    new_id = max((post['id'] for post in POSTS), default=0) + 1
+    # Read existing posts from posts.json
+    posts = load_posts()
+
+    new_id = max((post['id'] for post in posts), default=0) + 1
 
     new_post = {
         "id": new_id,
@@ -132,15 +127,23 @@ def add_post():
         "date": data['date']
     }
 
-    POSTS.append(new_post)
+    # Add the new post to the list
+    posts.append(new_post)
+
+    # Save the updated list in posts.json
+    save_posts(posts)
 
     return jsonify(new_post), 201
 
 @app.route('/api/posts/<int:post_id>', methods=['DELETE'])
 def delete_post(post_id):
-    for post in POSTS:
+    posts = load_posts()
+
+    for post in posts:
         if post['id'] == post_id:
-            POSTS.remove(post)
+            posts.remove(post)
+            save_posts(posts)
+
             return jsonify({
                 "message": f"Post with id {post_id} has been deleted successfully."
             }), 200
@@ -156,12 +159,17 @@ def update_post(post_id):
             "error": "Invalid date format. Use YYYY-MM-DD"
         }), 400
 
-    for post in POSTS:
+    posts = load_posts()
+
+    for post in posts:
         if post['id'] == post_id:
             post['title'] = data.get('title', post['title'])
             post['content'] = data.get('content', post['content'])
             post['author'] = data.get('author', post['author'])
             post['date'] = data.get('date', post['date'])
+
+            save_posts(posts)
+
             return jsonify(post), 200
 
     return jsonify({"error": "Post not found"}), 404

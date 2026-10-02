@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "title": "First post from post.json",
+        "content": "This is the first post.",
+        "author": "The Mastar",
+        "date": "2026-10-01"
+    },
+    {
+        "id": 2,
+        "title": "second post update from swagar",
+        "content": "This is the second post.",
+        "author": "Peter Kane",
+        "date": "2026-09-25"
+    },
+    {
+        "id": 3,
+        "title": "ivan post",
+        "content": "This is the ivan post.",
+        "author": "Ivan Vasilev",
+        "date": "2026-09-30"
+    }
+]
