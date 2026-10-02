@@ -5,8 +5,22 @@ window.onload = function() {
     // If a base URL is found in local storage, load the posts
     if (savedBaseUrl) {
         document.getElementById('api-base-url').value = savedBaseUrl;
-        loadPosts();
     }
+}
+
+function displayPosts(data) {
+    const postContainer = document.getElementById('post-container');
+
+     postContainer.innerHTML = '';
+
+            // For each post in the response, create a new post element and add it to the page
+            data.forEach(post => {
+                const postDiv = document.createElement('div');
+                postDiv.className = 'post';
+                postDiv.innerHTML = `<h2>${post.title}</h2><p>${post.content}</p><p>Author: ${post.author}</p><p>Date: ${post.date}</p>
+                <button onclick="deletePost(${post.id})">Delete</button>`;
+                postContainer.appendChild(postDiv);
+            });
 }
 
 // Function to fetch all the posts from the API and display them on the page
@@ -18,20 +32,9 @@ function loadPosts() {
     // Use the Fetch API to send a GET request to the /posts endpoint
     fetch(baseUrl + '/posts')
         .then(response => response.json())  // Parse the JSON data from the response
-        .then(data => {  // Once the data is ready, we can use it
-            // Clear out the post container first
-            const postContainer = document.getElementById('post-container');
-            postContainer.innerHTML = '';
-
-            // For each post in the response, create a new post element and add it to the page
-            data.forEach(post => {
-                const postDiv = document.createElement('div');
-                postDiv.className = 'post';
-                postDiv.innerHTML = `<h2>${post.title}</h2><p>${post.content}</p><p>Author: ${post.author}</p><p>Date: ${post.date}</p>
-                <button onclick="deletePost(${post.id})">Delete</button>`;
-                postContainer.appendChild(postDiv);
-            });
-        })
+        .then(data => {
+                    displayPosts(data);
+                })
         .catch(error => {
             console.error('Error:', error)
             document.getElementById('backend-status').textContent =
@@ -76,3 +79,27 @@ function deletePost(postId) {
     })
     .catch(error => console.error('Error:', error));  // If an error occurs, log it to the console
 }
+
+function searchPosts() {
+    var baseUrl = document.getElementById('api-base-url').value;
+    var searchInput = document.getElementById('search-input').value;
+
+    fetch(baseUrl + '/posts/search?search=' + searchInput)
+        .then(response => response.json())
+        .then(data => {
+            displayPosts(data);
+        })
+}
+
+function sortPosts() {
+    var baseUrl = document.getElementById('api-base-url').value;
+    var sortField = document.getElementById('sortField').value;
+    var directionSort = document.getElementById('directionSort').value;
+
+    fetch(baseUrl + '/posts?sort=' + sortField + '&direction=' + directionSort)
+        .then(response => response.json())
+        .then(data => {
+            displayPosts(data);
+        });
+}
+

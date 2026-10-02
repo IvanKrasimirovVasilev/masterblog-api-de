@@ -89,3 +89,34 @@ body {
 .post button:hover {
     background-color: #cc0000;
 }
+
+.input-field label {
+    margin-right: 8px;
+    font-size: 16px;
+    color: #333;
+    white-space: nowrap;
+}
+
+.input-field select {
+    height: 40px;
+    padding: 0 35px 0 12px;
+    margin-right: 10px;
+    font-size: 16px;
+
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+
+    cursor: pointer;
+    outline: none;
+}
+
+.input-field select:focus {
+    box-shadow: 0px 4px 10px rgba(68, 102, 238, 0.3);
+}
+
+.sort-field {
+    display: flex;
+    gap: 30px;
+}

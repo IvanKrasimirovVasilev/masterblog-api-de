@@ -22,6 +22,33 @@
 
             <button onclick="addPost()">Add Post</button>
         </div>
+        <div class="input-field">
+            <input type="text" id="search-input" placeholder="Search posts...">
+            <button onclick="searchPosts()">Search</button>
+        </div>
+        <div class="input-field sort-field">
+
+            <div>
+                <label for="sortField">Sort by:</label>
+            <select id="sortField">
+                <option value="title">Title</option>
+                <option value="content">Content</option>
+                <option value="author">Author</option>
+                <option value="date">Date</option>
+            </select>
+            </div>
+
+            <div>
+                <label for="directionSort">Direction:</label>
+            <select id="directionSort">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+            </select>
+            </div>
+
+
+            <button onclick="sortPosts()">Sort</button>
+        </div>
         <div id="post-container">
             <!-- Blog posts will be inserted here by JavaScript -->
         </div>
